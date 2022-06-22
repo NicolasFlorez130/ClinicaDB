@@ -1,15 +1,18 @@
-package company.model.persistence.impl;
+package company.repository.impl;
 
-import company.model.classes.Paciente;
-import company.model.persistence.Dao;
-import company.model.persistence.H2Config;
+import company.entity.Paciente;
+import company.repository.Dao;
+import company.repository.utils.H2Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class PacienteDaoH2 implements Dao<Paciente> {
 
     private static final Logger logger = LoggerFactory.getLogger(PacienteDaoH2.class);
@@ -18,7 +21,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
     @Override
     public List<Paciente> read() {
 
-        List<Paciente> pacientes = new ArrayList<Paciente>();
+        List<Paciente> pacientes = new ArrayList<>();
 
         H2Config.setDriver();
         Connection con = H2Config.getConnection();
@@ -26,7 +29,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
         try {
             Statement s = con.createStatement();
             ResultSet rs = s.executeQuery("""
-                    SELECT * FROM Paciente AS p
+                    SELECT * FROM Pacientes AS p
                     INNER JOIN Domicilio d
                     ON p.Domicilio_id = d.Id
                     """);
@@ -35,7 +38,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
                         rs.getString("Nombre"),
                         rs.getString("Apellido"),
                         rs.getString("Dni"),
-                        rs.getString("FechaDeIngreso"),
+                        LocalDate.parse(rs.getString("FechaDeIngreso")),
                         rs.getInt("Domicilio_id")
                 ));
             }
@@ -53,7 +56,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
         Connection con = H2Config.getConnection();
         try {
             PreparedStatement st = con.prepareStatement("""
-                    SELECT * FROM Paciente AS p
+                    SELECT * FROM Pacientes AS p
                     INNER JOIN Domicilio d
                     ON p.Domicilio_id = d.Id
                     WHERE Dni = ?
@@ -67,7 +70,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
                         rs.getString("Nombre"),
                         rs.getString("Apellido"),
                         rs.getString("Dni"),
-                        rs.getString("FechaDeIngreso"),
+                        LocalDate.parse(rs.getString("FechaDeIngreso")),
                         rs.getInt("Domicilio_id"));
             }
 
@@ -84,7 +87,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
         Connection con = H2Config.getConnection();
 
         try (PreparedStatement st = con.prepareStatement("""
-                INSERT INTO Paciente (Nombre, Apellido, Dni, FechaDeIngreso, Domicilio_id)
+                INSERT INTO Pacientes (Nombre, Apellido, Dni, FechaDeIngreso, Domicilio_id)
                 VALUES (?, ?, ?, ?, ?);
                 """)) {
 
@@ -92,7 +95,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
             st.setString(1, paciente.getNombre());
             st.setString(2, paciente.getApellido());
             st.setString(3, paciente.getDni());
-            st.setString(4, paciente.getFechaDeIngreso());
+            st.setDate(4, java.sql.Date.valueOf(paciente.getFechaDeIngreso()));
             st.setInt(5, paciente.getDomicilioId());
             st.executeUpdate();
             con.commit();
@@ -114,7 +117,7 @@ public class PacienteDaoH2 implements Dao<Paciente> {
         Connection con = H2Config.getConnection();
 
         try (PreparedStatement st = con.prepareStatement("""
-                DELETE FROM Paciente
+                DELETE FROM Pacientes
                 WHERE Dni = ?
                 """)) {
             con.setAutoCommit(false);

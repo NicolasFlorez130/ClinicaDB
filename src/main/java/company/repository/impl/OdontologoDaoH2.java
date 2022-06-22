@@ -1,15 +1,17 @@
-package company.model.persistence.impl;
+package company.repository.impl;
 
-import company.model.classes.Odontologo;
-import company.model.persistence.Dao;
-import company.model.persistence.H2Config;
+import company.entity.Odontologo;
+import company.repository.Dao;
+import company.repository.utils.H2Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class OdontologoDaoH2 implements Dao<Odontologo> {
 
     private static final Logger logger = LoggerFactory.getLogger(OdontologoDaoH2.class);
@@ -17,7 +19,7 @@ public class OdontologoDaoH2 implements Dao<Odontologo> {
 
     @Override
     public List<Odontologo> read() {
-        List<Odontologo> odontologos = new ArrayList<Odontologo>();
+        List<Odontologo> odontologos = new ArrayList<>();
 
         H2Config.setDriver();
         Connection con = H2Config.getConnection();

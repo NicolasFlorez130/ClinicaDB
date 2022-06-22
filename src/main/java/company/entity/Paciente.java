@@ -1,15 +1,17 @@
-package company.model.classes;
+package company.entity;
+
+import java.time.LocalDate;
 
 public class Paciente {
 
     private String nombre;
     private String apellido;
     private String dni;
-    private String fechaDeIngreso;
+    private LocalDate fechaDeIngreso;
     private Domicilio domicilio;
     private int domicilioId;
 
-    public Paciente(String nombre, String apellido, String dni, String fechaDeIngreso, Domicilio domicilio) {
+    public Paciente(String nombre, String apellido, String dni, LocalDate fechaDeIngreso, Domicilio domicilio) {
         setNombre(nombre);
         setApellido(apellido);
         setDni(dni);
@@ -17,12 +19,16 @@ public class Paciente {
         setDomicilio(domicilio);
     }
 
-    public Paciente(String nombre, String apellido, String dni, String fechaDeIngreso, int domId) {
+    public Paciente(String nombre, String apellido, String dni, LocalDate fechaDeIngreso, int domId) {
         setNombre(nombre);
         setApellido(apellido);
         setDni(dni);
         setFechaDeIngreso(fechaDeIngreso);
         setDomicilioId(domId);
+    }
+
+    public Paciente(){
+
     }
 
     public String getNombre() {
@@ -49,11 +55,11 @@ public class Paciente {
         this.dni = dni;
     }
 
-    public String getFechaDeIngreso() {
+    public LocalDate getFechaDeIngreso() {
         return fechaDeIngreso;
     }
 
-    public void setFechaDeIngreso(String fechaDeIngreso) {
+    public void setFechaDeIngreso(LocalDate fechaDeIngreso) {
         this.fechaDeIngreso = fechaDeIngreso;
     }
 

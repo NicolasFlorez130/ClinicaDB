@@ -1,4 +1,4 @@
-package company.model.persistence;
+package company.repository;
 import java.util.List;
 
 public interface Dao<T> {

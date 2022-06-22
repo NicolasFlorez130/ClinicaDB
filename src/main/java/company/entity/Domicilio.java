@@ -1,5 +1,8 @@
-package company.model.classes;
+package company.entity;
 
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+
+@EntityScan
 public class Domicilio {
 
     private Integer id;
@@ -22,6 +25,8 @@ public class Domicilio {
         setLocalidad(localidad);
         setProvincia(provincia);
     }
+
+    public Domicilio(){}
 
     public Domicilio(Integer id) {
         setId(id);

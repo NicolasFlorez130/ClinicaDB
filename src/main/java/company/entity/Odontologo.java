@@ -1,4 +1,4 @@
-package company.model.classes;
+package company.entity;
 
 public class Odontologo {
     private String matricula;
@@ -9,6 +9,9 @@ public class Odontologo {
         setMatricula(matricula);
         setNombre(nombre);
         setApellido(apellido);
+    }
+
+    public Odontologo() {
     }
 
     public String getMatricula() {

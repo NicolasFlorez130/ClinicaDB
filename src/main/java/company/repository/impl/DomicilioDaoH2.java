@@ -1,27 +1,25 @@
-package company.model.persistence.impl;
+package company.repository.impl;
 
-import company.model.classes.Domicilio;
-import company.model.persistence.Dao;
-import company.model.persistence.H2Config;
+import company.entity.Domicilio;
+import company.repository.Dao;
+import company.repository.utils.H2Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Repository
 public class DomicilioDaoH2 implements Dao<Domicilio> {
 
     private static final Logger logger = LoggerFactory.getLogger(OdontologoDaoH2.class);
 
     public int getId(Domicilio d1) {
         for (Domicilio d2 : read()) {
-            if (
-                    d1.getCalle().equals(d2.getCalle()) &&
-                            d1.getNumero().equals(d2.getNumero()) &&
-                            //d1.getProvincia().equals(d2.getProvincia()) &&
-                            d1.getLocalidad().equals(d2.getLocalidad())
-            ) {
+            if (d1.getCalle().equals(d2.getCalle()) && d1.getNumero().equals(d2.getNumero())) {
                 return d2.getId();
             }
         }
@@ -31,7 +29,7 @@ public class DomicilioDaoH2 implements Dao<Domicilio> {
     @Override
     public List<Domicilio> read() {
 
-        List<Domicilio> domicilios = new ArrayList<Domicilio>();
+        List<Domicilio> domicilios = new ArrayList<>();
 
         H2Config.setDriver();
         Connection con = H2Config.getConnection();
@@ -118,7 +116,7 @@ public class DomicilioDaoH2 implements Dao<Domicilio> {
     }
 
     @Override
-    public void delete(String  id) {
+    public void delete(String id) {
 
         H2Config.setDriver();
         Connection con = H2Config.getConnection();
