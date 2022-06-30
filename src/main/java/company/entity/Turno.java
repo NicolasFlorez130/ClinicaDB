@@ -1,49 +1,28 @@
 package company.entity;
 
+import lombok.*;
+
+import javax.persistence.*;
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
+@Entity(name = "Turnos")
+@Table(name = "Turnos")
 public class Turno {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
-    private String pacienteDni;
-    private String odontologoMatricula;
     private LocalDate fecha;
 
-    public Turno(String dni, String matricula, LocalDate fecha) {
-        setPacienteDni(dni);
-        setOdontologoMatricula(matricula);
-        setFecha(fecha);
-    }
+    @ManyToOne
+    @JoinColumn
+    private Paciente paciente;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getPacienteDni() {
-        return pacienteDni;
-    }
-
-    public void setPacienteDni(String pacienteDni) {
-        this.pacienteDni = pacienteDni;
-    }
-
-    public String getOdontologoMatricula() {
-        return odontologoMatricula;
-    }
-
-    public void setOdontologoMatricula(String odontologoMatricula) {
-        this.odontologoMatricula = odontologoMatricula;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
+    @ManyToOne
+    @JoinColumn
+    private Odontologo odontologo;
 }

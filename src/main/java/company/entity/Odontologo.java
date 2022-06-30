@@ -1,40 +1,29 @@
 package company.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
+
+import javax.persistence.*;
+import java.util.List;
+
+@Getter
+@Setter
+@RequiredArgsConstructor
+@Entity(name = "Odontologos")
+@Table(name = "Odontologos")
 public class Odontologo {
-    private String matricula;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Integer id;
+
+    @Column(unique = true)
+    private Integer matricula;
     private String nombre;
     private String apellido;
 
-    public Odontologo(String matricula, String nombre, String apellido) {
-        setMatricula(matricula);
-        setNombre(nombre);
-        setApellido(apellido);
-    }
-
-    public Odontologo() {
-    }
-
-    public String getMatricula() {
-        return matricula;
-    }
-
-    public void setMatricula(String matricula) {
-        this.matricula = matricula;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
+    @OneToMany(mappedBy = "odontologo", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
+    private List<Turno> turno;
 }

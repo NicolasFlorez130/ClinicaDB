@@ -3,7 +3,7 @@ package company.entity;
 import java.util.HashMap;
 
 public class DomicilioFactory {
-    public static final HashMap<Integer, Domicilio> domicilioMap = new HashMap<>();
+    /*public static final HashMap<Integer, Domicilio> domicilioMap = new HashMap<>();
 
     public static Domicilio getDomicilio(Integer id) {
         Domicilio domicilio = domicilioMap.get(id);
@@ -16,5 +16,5 @@ public class DomicilioFactory {
 
     public static void setDomicilio(Domicilio domicilio) {
         domicilioMap.put(domicilio.getId(), domicilio);
-    }
+    }*/
 }

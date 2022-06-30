@@ -1,6 +1,8 @@
 package company.controller;
 
 import company.entity.Odontologo;
+import company.entity.OdontologoDTO;
+import company.entity.PacienteDTO;
 import company.service.OdontologoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -28,7 +31,7 @@ public class OdontologosControllers {
     }
 
     @GetMapping("/search/{matricula}")
-    public Object searchOdontologo(@PathVariable String matricula) {
+    public Object searchOdontologo(@PathVariable int matricula) {
         Odontologo odontologo = odontologoService.buscar(matricula);
         if (odontologo == null) {
             return new ResponseEntity<>("No existe un odontologo con matricula " + matricula + ".", HttpStatus.OK);
@@ -47,7 +50,7 @@ public class OdontologosControllers {
     }
 
     @DeleteMapping("/delete/{matricula}")
-    public ResponseEntity<String> deleteOdontologo(@PathVariable String matricula) {
+    public ResponseEntity<String> deleteOdontologo(@PathVariable int matricula) {
         if (odontologoService.eliminar(matricula)) {
             return new ResponseEntity<>("Se elimino el odontologo con matricula " + matricula + ".", HttpStatus.ACCEPTED);
         } else {

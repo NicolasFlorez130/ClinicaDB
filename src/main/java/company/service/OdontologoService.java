@@ -1,61 +1,71 @@
 package company.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.Odontologo;
-import company.repository.impl.OdontologoDaoH2;
+import company.entity.OdontologoDTO;
+import company.entity.Paciente;
+import company.repository.IOdontologoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OdontologoService {
+
     private static final Logger logger = LoggerFactory.getLogger(OdontologoService.class);
 
     @Autowired
-    OdontologoDaoH2 oDao;
+    IOdontologoRepository oRep;
 
-    public boolean agregar(Odontologo odontologo) {
-        if (oDao.read(odontologo.getMatricula()) != null) {
-            logger.error("Un odontologo con matricula " + odontologo.getMatricula() + " ya se encuentra registrado.");
-            return false;
-        } else {
-            oDao.create(odontologo);
-            return true;
-        }
+    @Autowired
+    ObjectMapper mapper;
+
+    public List<Odontologo> obtenerTodos() {
+        return oRep.findAll();
     }
 
-    public Odontologo buscar(String matricula) {
-        Odontologo odontologo = oDao.read(matricula);
-        if (odontologo != null) {
-            return odontologo;
+    public Odontologo buscar(int matricula) {
+        Optional<Odontologo> odontologo = oRep.findByMatricula(matricula);
+        if (odontologo.isPresent()) {
+            return odontologo.get();
         } else {
-            logger.error("No existe un odontologo con matricula " + matricula);
+            logger.error("No existe un odontologo con matricula " + matricula + ".");
             return null;
         }
     }
 
-    public List<Odontologo> obtenerTodos() {
-        return oDao.read();
-    }
-
-    public boolean eliminar(String matricula) {
-        if (buscar(matricula) == null) {
-            logger.error("No existe un odontologo con matricula " + matricula);
+    public boolean agregar(Odontologo odontologo) {
+        if (oRep.findByMatricula(odontologo.getMatricula()).isPresent()) {
+            logger.error("Un odontologo con matricula " + odontologo.getMatricula() + " ya se encuentra registrado.");
             return false;
         } else {
-            oDao.delete(matricula);
+            oRep.save(odontologo);
             return true;
         }
     }
 
     public boolean editar(Odontologo odontologo) {
-        if (buscar(odontologo.getMatricula()) == null) {
+        Odontologo aux = this.buscar(odontologo.getMatricula());
+        if (aux == null) {
+            logger.error("No existe un odontologo con matricula " + odontologo.getMatricula() + ".");
             return false;
         } else {
-            eliminar(odontologo.getMatricula());
-            agregar(odontologo);
+            odontologo.setId(aux.getId());
+            oRep.save(odontologo);
+            return true;
+        }
+    }
+
+    public boolean eliminar(int matricula) {
+        if (this.buscar(matricula) == null) {
+            logger.error("No existe un odontologo con matricula " + matricula + ".");
+            return false;
+        } else {
+            oRep.deleteByMatricula(matricula);
             return true;
         }
     }

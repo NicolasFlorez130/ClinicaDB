@@ -1,17 +1,16 @@
 package company.service;
 
-import company.entity.Domicilio;
-import company.entity.DomicilioFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.Paciente;
-import company.repository.impl.DomicilioDaoH2;
-import company.repository.impl.PacienteDaoH2;
+import company.entity.PacienteDTO;
+import company.repository.IPacienteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class PacienteService {
@@ -19,18 +18,35 @@ public class PacienteService {
     private static final Logger logger = LoggerFactory.getLogger(PacienteService.class);
 
     @Autowired
-    PacienteDaoH2 pDao;
+    IPacienteRepository pRep;
 
     @Autowired
-    DomicilioDaoH2 dDao;
+    DomicilioService domicilioService;
+
+    @Autowired
+    private ObjectMapper mapper;
+
+    public List<Paciente> obtenerTodos() {
+        return pRep.findAll();
+    }
+
+    public Paciente buscar(int dni) {
+        Optional<Paciente> paciente = pRep.findByDni(dni);
+        if (paciente.isPresent()) {
+            return paciente.get();
+        } else {
+            logger.error("No existe un usuario con DNI " + dni + ".");
+            return null;
+        }
+    }
 
     public boolean agregar(Paciente paciente) {
-        if (pDao.read(paciente.getDni()) == null) {
-            if (dDao.getId(paciente.getDomicilio()) == 0) {
-                dDao.create(paciente.getDomicilio());
+        if (pRep.findByDni(paciente.getDni()).isEmpty()) {
+            if (domicilioService.buscarId(paciente.getDomicilio()) == 0) {
+                domicilioService.crear(paciente.getDomicilio());
             }
-            paciente.setDomicilioId(dDao.getId(paciente.getDomicilio()));
-            pDao.create(paciente);
+            paciente.getDomicilio().setId(domicilioService.buscarId(paciente.getDomicilio()));
+            pRep.save(paciente);
             return true;
         } else {
             logger.error("Un usuario con DNI " + paciente.getDni() + " ya se encuentra registrado.");
@@ -38,56 +54,49 @@ public class PacienteService {
         }
     }
 
-    public Paciente buscar(String dni) {
-        Paciente paciente = pDao.read(dni);
-        if (paciente != null) {
-            Domicilio domicilio = DomicilioFactory.getDomicilio(paciente.getDomicilioId());
-            if (domicilio.getCalle() == null) {
-                DomicilioFactory.setDomicilio(dDao.read(Integer.toString(paciente.getDomicilioId())));
-                domicilio = DomicilioFactory.getDomicilio(paciente.getDomicilioId());
-            }
-            paciente.setDomicilio(domicilio);
-        } else {
-            logger.error("No existe un usuario con DNI " + dni);
-            return null;
-        }
-        return paciente;
-    }
-
-    public List<Paciente> obtenerTodos() {
-        List<Paciente> pacientes = pDao.read();
-
-        for (Paciente paciente : pacientes) {
-            paciente.setDomicilio(dDao.read(Integer.toString(paciente.getDomicilioId())));
-        }
-
-        return pacientes;
-    }
-
-    public boolean eliminar(String dni) {
-        if (buscar(dni) == null) {
-            logger.error("No existe un paciente con dni " + dni);
-            return false;
-        } else {
-            int domId = Objects.requireNonNull(buscar(dni)).getDomicilioId();
-            pDao.delete(dni);
-            int acum = 0;
-            for (Paciente paciente : pDao.read()) {
-                if (paciente.getDomicilioId() == domId) acum++;
-            }
-            if (acum == 0) {
-                dDao.delete(Integer.toString(domId));
-            }
-            return true;
-        }
-    }
-
     public boolean editar(Paciente paciente) {
-        if (buscar(paciente.getDni()) == null) {
+        Paciente aux = this.buscar(paciente.getDni());
+        if (aux == null) {
+            logger.error("No existe un paciente con DNI " + paciente.getDni() + ".");
             return false;
         } else {
-            eliminar(paciente.getDni());
-            agregar(paciente);
+            paciente.setId(aux.getId());
+        }
+
+        int domId = aux.getDomicilio().getId();
+
+        if (domicilioService.buscarId(paciente.getDomicilio()) == 0) {
+            domicilioService.crear(paciente.getDomicilio());
+        }
+
+        paciente.getDomicilio().setId(domicilioService.buscarId(paciente.getDomicilio()));
+        pRep.save(paciente);
+
+        int count = 0;
+        for (Paciente paciente1 : pRep.findAll()) {
+            if (paciente1.getDomicilio().getId() == domId) count++;
+        }
+
+        if (count == 0) domicilioService.eliminar(domId);
+
+        return true;
+    }
+
+    public boolean eliminar(int dni) {
+        Paciente paciente = this.buscar(dni);
+        if (paciente == null) {
+            logger.error("No existe un paciente con DNI " + dni + ".");
+            return false;
+        } else {
+            int domId = paciente.getDomicilio().getId();
+            pRep.deleteByDni(dni);
+            int count = 0;
+            for (Paciente paciente1 : pRep.findAll()) {
+                if (paciente1.getDomicilio().getId() == domId) count++;
+            }
+
+            if (count == 0) domicilioService.eliminar(domId);
+
             return true;
         }
     }
