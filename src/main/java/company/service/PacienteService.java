@@ -3,6 +3,7 @@ package company.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.Paciente;
 import company.entity.PacienteDTO;
+import company.repository.IOdontologoRepository;
 import company.repository.IPacienteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +18,14 @@ public class PacienteService {
 
     private static final Logger logger = LoggerFactory.getLogger(PacienteService.class);
 
-    @Autowired
-    IPacienteRepository pRep;
-
-    @Autowired
-    DomicilioService domicilioService;
-
-    @Autowired
+    private final IPacienteRepository pRep;
+    private final DomicilioService domicilioService;
     private ObjectMapper mapper;
+
+    public PacienteService(IPacienteRepository pRep, DomicilioService domicilioService){
+        this.pRep = pRep;
+        this.domicilioService = domicilioService;
+    }
 
     public List<Paciente> obtenerTodos() {
         return pRep.findAll();

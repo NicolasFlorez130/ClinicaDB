@@ -9,6 +9,6 @@ public class TurnoDTO {
 
     private Integer id;
     private LocalDate fecha;
-    private Paciente paciente;
-    private Odontologo odontologo;
+    private PacienteDTO paciente;
+    private OdontologoDTO odontologo;
 }

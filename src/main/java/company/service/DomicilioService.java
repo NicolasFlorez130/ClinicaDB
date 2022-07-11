@@ -16,8 +16,11 @@ public class DomicilioService {
 
     private static final Logger logger = LoggerFactory.getLogger(PacienteService.class);
 
-    @Autowired
-    IDomicilioRepository dRep;
+    private IDomicilioRepository dRep;
+
+    public DomicilioService(IDomicilioRepository dRep){
+        this.dRep = dRep;
+    }
 
     public int buscarId(Domicilio dom) {
         for (Domicilio dom1 : dRep.findAll()) {
@@ -32,13 +35,11 @@ public class DomicilioService {
         return 0;
     }
 
-    public int crear(Domicilio domicilio) {
+    public void crear(Domicilio domicilio) {
         int id = buscarId(domicilio);
         if (id == 0) {
             dRep.save(domicilio);
-            id = buscarId(domicilio);
         }
-        return id;
     }
 
     public boolean revisar(Domicilio domicilio) {

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -18,16 +19,13 @@ import java.util.List;
 public class TurnosControllers {
 
     @Autowired
-    TurnoService turnoService;
+    private ObjectMapper mapper;
 
-    @Autowired
-    PacienteService pacienteService;
+    private final TurnoService turnoService;
 
-    @Autowired
-    OdontologoService odontologoService;
-
-    @Autowired
-    ObjectMapper mapper;
+    public TurnosControllers(TurnoService turnoService, PacienteService pacienteService, OdontologoService odontologoService){
+        this.turnoService = turnoService;
+    }
 
     @GetMapping("/list")
     public ResponseEntity<Object> listOdontologos() {
@@ -35,33 +33,40 @@ public class TurnosControllers {
         if (turnos.size() == 0) {
             return new ResponseEntity<>("No hay turnos para mostrar.", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(turnos, HttpStatus.OK);
+            List<TurnoDTO> turnoDTOS = new ArrayList<>();
+            for (Turno turno : turnos) {
+                turnoDTOS.add(mapper.convertValue(turno, TurnoDTO.class));
+            }
+            return new ResponseEntity<>(turnoDTOS, HttpStatus.OK);
         }
     }
 
     @GetMapping("/search/{id}")
-    public Object searchTurnos(@PathVariable int id) {
+    public ResponseEntity<Object> searchTurnos(@PathVariable int id) {
         Turno turno = turnoService.buscar(id);
         if (turno == null) {
             return new ResponseEntity<>("No existe un turno con ID " + id + ".", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(turno, HttpStatus.OK);
+            return new ResponseEntity<>(mapper.convertValue(turno, TurnoDTO.class), HttpStatus.OK);
         }
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createTurnos(@RequestBody Turno turno) {
-        if (turnoService.agregar(turno)) {
-            return new ResponseEntity<>("Turno agregado con exito.", HttpStatus.ACCEPTED);
-        } else {
-            return new ResponseEntity<>("El paciente y/o odontologo no existe.", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> createTurnos(@RequestBody TurnoDTO turno) {
+        if(turno.getFecha() == null){
+            return new ResponseEntity<>("Ingrese una fecha valida.", HttpStatus.BAD_REQUEST);
         }
+
+        return switch (turnoService.agregar(mapper.convertValue(turno, Turno.class))) {
+            case 0 -> new ResponseEntity<>("El paciente y/o odontologo no existe.", HttpStatus.BAD_REQUEST);
+            case 1 -> new ResponseEntity<>("Turno agregado con exito.", HttpStatus.ACCEPTED);
+            default -> new ResponseEntity<>("El odontologo ya tiene un turno programado para esa fecha.", HttpStatus.BAD_REQUEST);
+        };
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteTurnos(@PathVariable int id) {
-        if (turnoService.buscar(id) != null) {
-            turnoService.eliminar(id);
+        if (turnoService.eliminar(id)) {
             return new ResponseEntity<>("Se elimino el turno con ID " + id + ".", HttpStatus.ACCEPTED);
         } else {
             return new ResponseEntity<>("No existe un turno con ID " + id + ".", HttpStatus.NOT_FOUND);
@@ -69,8 +74,12 @@ public class TurnosControllers {
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<Object> editTurnos(@RequestBody Turno turno) {
-        return switch (turnoService.editar(turno)) {
+    public ResponseEntity<Object> editTurnos(@RequestBody TurnoDTO turno) {
+        if(turno.getFecha() == null){
+            return new ResponseEntity<>("Ingrese una fecha valida.", HttpStatus.BAD_REQUEST);
+        }
+
+        return switch (turnoService.editar(mapper.convertValue(turno, Turno.class))) {
             case 0 -> new ResponseEntity<>("El paciente y/o odontologo no existe.", HttpStatus.BAD_REQUEST);
             case 1 -> new ResponseEntity<>("Turno editado.", HttpStatus.ACCEPTED);
             default -> new ResponseEntity<>("No existe un turno con id " + turno.getId() + ".", HttpStatus.NOT_FOUND);

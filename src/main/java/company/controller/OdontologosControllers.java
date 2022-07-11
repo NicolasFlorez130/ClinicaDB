@@ -1,14 +1,14 @@
 package company.controller;
 
-import company.entity.Odontologo;
-import company.entity.OdontologoDTO;
-import company.entity.PacienteDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import company.entity.*;
 import company.service.OdontologoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +18,13 @@ import java.util.Optional;
 public class OdontologosControllers {
 
     @Autowired
-    OdontologoService odontologoService;
+    private ObjectMapper mapper;
+
+    private final OdontologoService odontologoService;
+
+    public OdontologosControllers(OdontologoService odontologoService){
+        this.odontologoService = odontologoService;
+    }
 
     @GetMapping("/list")
     public ResponseEntity<Object> listOdontologos() {
@@ -26,7 +32,11 @@ public class OdontologosControllers {
         if (odontologos.size() == 0) {
             return new ResponseEntity<>("No hay odontologos para mostrar.", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(odontologos, HttpStatus.OK);
+            List<OdontologoDTO> odontologoDTOS = new ArrayList<>();
+            for (Odontologo odontologo : odontologos) {
+                odontologoDTOS.add(mapper.convertValue(odontologo, OdontologoDTO.class));
+            }
+            return new ResponseEntity<>(odontologoDTOS, HttpStatus.OK);
         }
     }
 
@@ -36,16 +46,16 @@ public class OdontologosControllers {
         if (odontologo == null) {
             return new ResponseEntity<>("No existe un odontologo con matricula " + matricula + ".", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(odontologo, HttpStatus.OK);
+            return new ResponseEntity<>(mapper.convertValue(odontologo, OdontologoDTO.class), HttpStatus.OK);
         }
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createOdontologo(@RequestBody Odontologo odontologo) {
-        if (odontologoService.agregar(odontologo)) {
-            return new ResponseEntity<>(odontologoService.buscar(odontologo.getMatricula()), HttpStatus.ACCEPTED);
+    public ResponseEntity<Object> createOdontologo(@RequestBody OdontologoDTO odontologo) {
+        if (odontologoService.agregar(mapper.convertValue(odontologo, Odontologo.class))) {
+            return new ResponseEntity<>("Odontologo registrado.", HttpStatus.ACCEPTED);
         } else {
-            return new ResponseEntity<>("Un odontologo con matricula " + odontologo.getMatricula() + " ya se encuentra registrado.", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>("Un odontologo con matricula " + odontologo.getMatricula() + " ya se encuentra registrado.", HttpStatus.CONFLICT);
         }
     }
 
@@ -59,8 +69,8 @@ public class OdontologosControllers {
     }
 
     @PutMapping("/edit")
-    public ResponseEntity<Object> editOdontologo(@RequestBody Odontologo odontologo) {
-        if (odontologoService.editar(odontologo)) {
+    public ResponseEntity<Object> editOdontologo(@RequestBody OdontologoDTO odontologo) {
+        if (odontologoService.editar(mapper.convertValue(odontologo, Odontologo.class))) {
             return new ResponseEntity<>("Odontologo editado.", HttpStatus.ACCEPTED);
         } else {
             return new ResponseEntity<>("No existe un odontologo con matricula " + odontologo.getMatricula() + ".", HttpStatus.NOT_FOUND);

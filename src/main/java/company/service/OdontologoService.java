@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.Odontologo;
 import company.entity.OdontologoDTO;
 import company.entity.Paciente;
+import company.repository.IDomicilioRepository;
 import company.repository.IOdontologoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +19,12 @@ public class OdontologoService {
 
     private static final Logger logger = LoggerFactory.getLogger(OdontologoService.class);
 
-    @Autowired
-    IOdontologoRepository oRep;
+    private final IOdontologoRepository oRep;
+    private ObjectMapper mapper;
 
-    @Autowired
-    ObjectMapper mapper;
+    public OdontologoService(IOdontologoRepository oRep){
+        this.oRep = oRep;
+    }
 
     public List<Odontologo> obtenerTodos() {
         return oRep.findAll();

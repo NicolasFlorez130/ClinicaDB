@@ -1,6 +1,7 @@
 package company.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.Paciente;
 import company.entity.PacienteDTO;
 import company.service.DomicilioService;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,10 +21,15 @@ import java.util.Objects;
 public class PacientesControllers {
 
     @Autowired
-    private DomicilioService domicilioService;
+    private ObjectMapper mapper;
 
-    @Autowired
-    private PacienteService pacienteService;
+    private final DomicilioService domicilioService;
+    private final PacienteService pacienteService;
+
+    public PacientesControllers(DomicilioService domicilioService, PacienteService pacienteService){
+        this.domicilioService = domicilioService;
+        this.pacienteService = pacienteService;
+    }
 
     @GetMapping("/list")
     public ResponseEntity<Object> listPacientes() {
@@ -30,14 +37,22 @@ public class PacientesControllers {
         if (pacientes.size() == 0) {
             return new ResponseEntity<>("No hay pacientes para mostrar.", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(pacientes, HttpStatus.OK);
+            List<PacienteDTO> pacienteDTOS = new ArrayList<>();
+            for (Paciente paciente : pacientes) {
+                pacienteDTOS.add(mapper.convertValue(paciente, PacienteDTO.class));
+            }
+            return new ResponseEntity<>(pacienteDTOS, HttpStatus.OK);
         }
     }
 
     @GetMapping("/search/{dni}")
     public ResponseEntity<Object> searchPaciente(@PathVariable int dni) {
         Paciente paciente = pacienteService.buscar(dni);
-        return new ResponseEntity<>(Objects.requireNonNullElseGet(paciente, () -> "No existe un paciente con DNI " + dni + "."), HttpStatus.OK);
+        if (paciente != null) {
+            return new ResponseEntity<>(mapper.convertValue(paciente, PacienteDTO.class), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("No existe un paciente con DNI " + dni + ".", HttpStatus.OK);
+        }
     }
 
     @PostMapping("/create")
@@ -46,16 +61,16 @@ public class PacientesControllers {
             return new ResponseEntity<>("Ingrese un paciente con un domicilio valido por favor.", HttpStatus.BAD_REQUEST);
 
         if (pacienteService.agregar(paciente)) {
-            return new ResponseEntity<>(pacienteService.buscar(paciente.getDni()), HttpStatus.ACCEPTED);
+            return new ResponseEntity<>("Paciente registrado.", HttpStatus.ACCEPTED);
         } else {
-            return new ResponseEntity<>("Un usuario con DNI " + paciente.getDni() + " ya se encuentra registrado.", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>("Un usuario con DNI " + paciente.getDni() + " ya se encuentra registrado.", HttpStatus.CONFLICT);
         }
     }
 
     @PutMapping("/edit")
     public ResponseEntity<Object> editPaciente(@RequestBody Paciente paciente) {
         if (!domicilioService.revisar(paciente.getDomicilio())) {
-            return new ResponseEntity<>("Ingrese un paciente con un domicilio valido por favor.", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Ingrese un paciente con un domicilio valido por favor.", HttpStatus.CONFLICT);
         }
 
         if (pacienteService.editar(paciente)) {

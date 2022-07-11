@@ -1,16 +1,11 @@
 package company.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import company.entity.*;
 import company.repository.ITurnoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,17 +14,15 @@ public class TurnoService {
 
     private static final Logger logger = LoggerFactory.getLogger(OdontologoService.class);
 
-    @Autowired
-    private ITurnoRepository tRep;
+    private final ITurnoRepository tRep;
+    private final PacienteService pacienteService;
+    private final OdontologoService odontologoService;
 
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
-    PacienteService pacienteService;
-
-    @Autowired
-    OdontologoService odontologoService;
+    public TurnoService(ITurnoRepository tRep, PacienteService pacienteService, OdontologoService odontologoService){
+        this.tRep = tRep;
+        this.pacienteService = pacienteService;
+        this.odontologoService = odontologoService;
+    }
 
     public List<Turno> obtenerTodos() {
         return tRep.findAll();
@@ -45,21 +38,29 @@ public class TurnoService {
         }
     }
 
-    public boolean agregar(Turno turno) {
+    public int agregar(Turno turno) {
         Paciente paciente = pacienteService.buscar(turno.getPaciente().getDni());
         Odontologo odontologo = odontologoService.buscar(turno.getOdontologo().getMatricula());
 
-        if(paciente != null && odontologo != null){
+        if (paciente != null && odontologo != null) {
             turno.getOdontologo().setId(odontologo.getId());
             turno.getPaciente().setId(paciente.getId());
+
+            for (Turno turno1 : odontologo.getTurno()) {
+                if (turno1.getFecha().equals(turno.getFecha())) {
+                    return 2;
+                }
+            }
+
             tRep.save(turno);
-            return true;
-        }else{
-            return false;
+            return 1;
+
+        } else {
+            return 0;
         }
     }
 
-    public int editar(Turno turno){
+    public int editar(Turno turno) {
         Paciente paciente = pacienteService.buscar(turno.getPaciente().getDni());
         Odontologo odontologo = odontologoService.buscar(turno.getOdontologo().getMatricula());
 
